@@ -1,3 +1,19 @@
 # Script to Get all users in a particular OU in AD, and add those users based on SamAccountName property to a specified group
+
 Get-ADUser -filter * -searchbase "OU=Users,OU=Lakeland,DC=aspirion,DC=com" | ForEach-Object {Add-AdGroupMember -Identity LAK_SP_ATU_READ -members $_.SamAccountName}
 
+# Imports users from a comma separated list, uses a for loop to add those users to a specified group using Add-AdGroupMember 
+
+$Groups = Import-CSV C:\Users\ecw_aspirion\users.csv 
+
+
+$Groups |
+
+ForEach-Object {
+
+$Group = $_.Group 
+
+Get-ADUser -SearchBase "OU=Users,OU=Lakeland,DC=aspirion,DC=com" -Filter * | ForEach-Object { 
+Add-AdGroupMember -Identity $Group -Members $_}
+
+}
