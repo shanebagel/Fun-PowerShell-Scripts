@@ -46,20 +46,3 @@ Get-ADGroup $Group
 
 
 }
-
--------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-# Takes a CSV list of desired SharePoint Site Group names, adds the SharePoint Site Groups to a SharePoint Site with specified Permission Levels
-
-$SecGroups = Import-Csv C:\Users\ShaneHartley\Downloads\SG.csv
-
-ForEach ($Sec in $SecGroups.SG) {
-    
-    Switch ($Sec)
-    {
-       {$Sec -match 'EDIT'} {New-SPOSiteGroup -Site https://aspirionhealth.sharepoint.com/sites/Aspirion-Lakeland -Group $Sec -PermissionLevels "Edit"}
-       {$Sec -match 'READ'} {New-SPOSiteGroup -Site https://aspirionhealth.sharepoint.com/sites/Aspirion-Lakeland -Group $Sec -PermissionLevels "Read"}
-       {$Sec -match 'FULL'} {New-SPOSiteGroup -Site https://aspirionhealth.sharepoint.com/sites/Aspirion-Lakeland -Group $Sec -PermissionLevels "Full"}
-       {$Sec -match 'CONTRIBUTE'} {New-SPOSiteGroup -Site https://aspirionhealth.sharepoint.com/sites/Aspirion-Lakeland -Group $Sec -PermissionLevels "Contribute"}
-    }
-}
