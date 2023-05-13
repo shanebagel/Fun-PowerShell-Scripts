@@ -1,48 +1,81 @@
+Add users in an OU to a Group	
+
 # Script to Get all users in a particular OU in AD, and add those users based on SamAccountName property to a specified group
+	
+	Get-ADUser -filter * -searchbase "OU=Users,OU=Lakeland,DC=aspirion,DC=com" | ForEach-Object {Add-AdGroupMember -Identity LAK_SP_ATU_READ -members $_.SamAccountName}
 
-Get-ADUser -filter * -searchbase "OU=Users,OU=Lakeland,DC=aspirion,DC=com" | ForEach-Object {Add-AdGroupMember -Identity LAK_SP_ATU_READ -members $_.SamAccountName}
--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Add users from a CSV to a Group	
+
+
 # Imports users from a comma separated list, uses a for loop to add those users to a specified group using Add-AdGroupMember 
+	
+	$Groups = Import-CSV C:\Users\ecw_aspirion\users.csv 
+	
+	
+	$Groups |
+	
+	ForEach-Object {
+	
+	$Group = $_.Group 
+	
+	Get-ADUser -SearchBase "OU=Users,OU=Lakeland,DC=aspirion,DC=com" -Filter * | ForEach-Object { 
+	Add-AdGroupMember -Identity $Group -Members $_}
+	
+	}
 
-$Groups = Import-CSV C:\Users\ecw_aspirion\users.csv 
-
-
-$Groups |
-
-ForEach-Object {
-
-$Group = $_.Group 
-
-Get-ADUser -SearchBase "OU=Users,OU=Lakeland,DC=aspirion,DC=com" -Filter * | ForEach-Object { 
-Add-AdGroupMember -Identity $Group -Members $_}
-
-}
-
--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Add users from an "internal" CSV to a Group	
 
 # Adds users from a comma separated "internal" list. Doesn't rely on any external files, the delimiter is the new line splitting on (“`n”)
+	
+	$GroupCsv = @"
+	GroupName1
+	GroupName2
+	GroupName3
+	GroupName4
+	"@
+	
+	$UserOU = "OU=Users,OU=Lakeland,DC=aspirion,DC=com"
+	
+	$Groups = $GroupCsv -split (“`n”)
+	$Users = Get-ADUser -SearchBase $UserOU -Filter *
+	
+	
+	ForEach ($Group in $Groups) {
+	
+	Get-ADGroup $Group
+	
+	
+	    $Users | ForEach-Object {
+	        Add-ADGroupMember -Identity $Group -Members $_
+	    }
+	
+	
+	}
+    
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Install Software from an EXE silently, no GUI	
 
-$GroupCsv = @"
-GroupName1
-GroupName2
-GroupName3
-GroupName4
-"@
+Start-Process -Wait -FilePath "PathToExe.exe" -ArgumentList "/S /v/qn" -PassThru
 
-$UserOU = "OU=Users,OU=Lakeland,DC=aspirion,DC=com"
-
-$Groups = $GroupCsv -split (“`n”)
-$Users = Get-ADUser -SearchBase $UserOU -Filter *
-
-
-ForEach ($Group in $Groups) {
-
-Get-ADGroup $Group
-
-
-    $Users | ForEach-Object {
-        Add-ADGroupMember -Identity $Group -Members $_
-    }
-
-
-}
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Bulk Create AD Distribution Groups 	Import-Module ActiveDirectory
+	$Users = Import-CSV 'C:\Users\ecw\Desktop\DL.csv'
+	
+	ForEach ($User in $Users){
+	
+	$groupProperties = @{
+	
+	Name = $User.Name
+	DisplayName = $User.Name
+	Path = "OU=Distribution Groups,OU=ParkShore,DC=main,DC=parkshoredrug,DC=com"
+	SamAccountName = $User.Name
+	GroupScope = "Universal"
+	GroupCategory = "Distribution"
+	
+	}
+	
+	New-ADGroup @groupProperties
+	
+	}
