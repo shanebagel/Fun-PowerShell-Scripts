@@ -57,10 +57,12 @@ Add users from an "internal" CSV to a Group
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Install Software from an EXE silently, no GUI	
 
-Start-Process -Wait -FilePath "PathToExe.exe" -ArgumentList "/S /v/qn" -PassThru
+	Start-Process -Wait -FilePath "PathToExe.exe" -ArgumentList "/S /v/qn" -PassThru
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-Bulk Create AD Distribution Groups 	Import-Module ActiveDirectory
+Bulk Create AD Distribution Groups 	
+
+	Import-Module ActiveDirectory
 	$Users = Import-CSV 'C:\Users\ecw\Desktop\DL.csv'
 	
 	ForEach ($User in $Users){
@@ -78,4 +80,24 @@ Bulk Create AD Distribution Groups 	Import-Module ActiveDirectory
 	
 	New-ADGroup @groupProperties
 	
+	}
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Bulk Update AD User/Group Attributes from CSV
+
+	Import-Module ActiveDirectory
+	$Users = Import-CSV 'C:\Users\ecw\Desktop\DL.csv'
+
+	ForEach ($User in $Users){
+
+	$groupAttributes = @{
+
+	Identity = $user.Name
+	Replace = @{Mail=$user.Email}
+
+
+	}
+
+	Set-ADGroup @groupAttributes
+
 	}
