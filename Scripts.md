@@ -1,4 +1,4 @@
-# PowerShell-Fun-Stuff
+# Fun PowerShell Stuff
 ### List of scripts I've written by hand and used in production - work in progress
 
 ### Add users in an OU to a Group
