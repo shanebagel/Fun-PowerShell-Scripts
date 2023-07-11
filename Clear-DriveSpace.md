@@ -1,4 +1,4 @@
-### Clear-DriveSpace - Clears out unused drive space on a windows system
+# Clear-DriveSpace - Clears out unused drive space on a windows system
 
 ```
 
