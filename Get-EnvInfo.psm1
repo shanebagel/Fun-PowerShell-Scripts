@@ -1,56 +1,89 @@
 function Get-EnvInfo {
 
-<#
+    <#
     .SYNOPSIS
     Get-EnvInfo retrieves remote or local system information with a controller script
     .DESCRIPTION
     Get-EnvInfo retrieves IP Addresses, Hostnames, Windows OS Versions, Detailed computer info, Name of Domain, Name of Forest, FSMO Roles, Exports all data to the Host and to a txt file.
+    The script can be ran against remote systems using invoke-command.
     .PARAMETER ComputerName
     ComputerName is the hostname of the system you're retrieving information from.
     .PARAMETER Credential
-    Credential is the Username of the user you're running the script with - use a local/domain administrator account.
+    Specifies the user account credentials to use to run the script - use a local or domain administrator account. You will be prompted for a password
     .EXAMPLE
     Get-EnvInfo -ComputerName "Shaneserver" -Credential "Admin"
     .NOTES 
     Must run the script as administrator.
     Must be running at least PowerShell verion 5.0 - Verify with $PSVersionTable
+    You must place the .psm1 module in a PSModulePath directory. 
+    You import the Get-EnvInfo module with 'Import-Module Get-EnvInfo'
     #>
     
-    
-[CmdletBinding()]
-Param(
-    [Parameter(Mandatory = $True, ValueFromPipelineByPropertyName = $True)]
-    [String[]]$ComputerName, # Array for Computer names
-    [Parameter(Mandatory = $True, ValueFromPipelineByPropertyName = $True)]
-    [String]$Credential
-)
-foreach ($Computer in $ComputerName) {
-    if (Test-Connection $Computer -Quiet) {
-        Invoke-Command -ComputerName $Computer -Credential $Credential -ScriptBlock {
-    
-            Get-ADDomain | Select-Object @{name = 'Domain Name'; expression = { $_."Name" } }, @{name = 'Forest Name'; expression = { $_."Forest" } } | Add-Content -Path .\EnvironmentInformation.txt 
-    
-            Write-Verbose "Discovering all servers in environment" 
-            Get-ADComputer -Filter { (OperatingSystem -like "*Server*") -and (Enabled -eq $true) } -Properties * | Select-Object DNSHostName, IPv4Address, OperatingSystem | Add-Content -Path .\EnvironmentInformation.txt # Discover servers 
-                    
-            Write-Verbose "Discovering Forest-Level Roles"
-            Get-ADForest | Format-Table *Master | Add-Content -Path .\EnvironmentInformation.txt # Discover Forest-Level Roles
-                    
-            Write-Verbose "Discovering Domain-Level Roles"
-            Get-ADDomain | Format-Table PDCEmulator, *Master | Add-Content -Path .\EnvironmentInformation.txt # Discover Domain-Level Roles
-    
-            Get-WindowsFeature -ComputerName $Computer | Where-Object { $_.InstallState -eq "installed" } | Add-Content -Path .\EnvironmentInformation.txt # Discover installed roles on each server
-     
-     
-            Get-Content -Path .\EnvironmentInformation.txt
-        }
-    
-    }
-    else {
-        Write-Warning "Error: Cannot connect to server $Computer - Please verify network connectivity"
-    }
-}
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $True, ValueFromPipelineByPropertyName = $True)]
+        [String[]]$ComputerName, # Array for Computer names
+        [Parameter(Mandatory = $True, ValueFromPipelineByPropertyName = $True)]
+        [String]$Credential
+    )
 
-}
+    BEGIN {}
 
-Get-EnvInfo
+    PROCESS {
+        foreach ($Computer in $ComputerName) {
+            if (Test-Connection $Computer -Quiet) {
+                Invoke-Command -ComputerName $Computer -Credential $Credential -ScriptBlock {
+
+                    Write-Host "Discovering the Domain Controller types" -ForeGroundColor Black -BackGroundcolor Yellow
+                    Write-Host ""
+
+                    $DCServices = ("GlobalCatalog", "KDC", "PrimaryDC")
+                    $DCServices | ForEach-Object {
+                        Write-Host "The $_ is:" -ForeGroundColor Black -BackGroundcolor Yellow
+                        Get-ADDomainController -Discover -Service $_ | Select-Object Name, Site, IPv4Address
+                    }
+        
+                    Write-Host "Discovering Domain & Forest" -ForeGroundColor Black -BackGroundcolor Yellow
+                    Get-ADDomain | Select-Object @{name = 'Domain Name'; expression = { $_."Name" } }, @{name = 'Forest Name'; expression = { $_."Forest" } } | Format-Table  
+            
+                    Write-Host "Discovering all servers in environment" -ForeGroundColor Black -BackGroundcolor Yellow
+                    Get-ADComputer -Filter { (OperatingSystem -like "*Server*") -and (Enabled -eq $true) } -Properties * | Select-Object DNSHostName, IPv4Address, OperatingSystem | Format-Table
+            
+                    Write-Host "Discovering all Domain Controllers in environment" -ForeGroundColor Black -BackGroundcolor Yellow
+                    Get-ADDomainController -Filter * | Format-Table Name, Sites, IPv4Address, IsGlobalCatalog, IsReadOnly -AutoSize
+
+                    Write-Host "Discovering Forest-Level Roles" -ForeGroundColor Black -BackGroundcolor Yellow
+                    Get-ADForest | Format-Table *Master # Discover Forest-Level Roles
+            
+                    Write-Host "Discovering Domain-Level Roles" -ForeGroundColor Black -BackGroundcolor Yellow
+                    Get-ADDomain | Format-Table PDCEmulator, *Master # Discover Domain-Level Roles
+
+                    ForEach ($Computer in $ComputerName) {
+                        Write-Host "Discovering Installed Roles & Features on computers provided" -ForeGroundColor Black -BackGroundcolor Yellow
+                        Get-WindowsFeature | Where-Object { $Computer.InstallState -eq "installed" } | Format-Table # Discover installed roles on each server
+                    }    
+
+                    Write-Host "Discovering all enabled GPOs in Domain" -ForeGroundColor Black -BackGroundcolor Yellow
+                    $Domain = Get-ADDomain | Select-Object -ExpandProperty DNSRoot -Wait
+                    Get-GPO -All | Where-Object { $_.GpoStatus -like "*enabled*" } | Select-Object DisplayName, @{name = 'GPO ID'; expression = { $_."id" } }, Description | Format-Table
+
+                } # End of invoke command
+            } # End of if statement
+
+            else {
+                Write-Warning "Error: Cannot connect to server $Computer - Please verify network connectivity"
+            }
+        } # End of foreach loop
+    } # End of process block
+    END {}
+} # End of function
+
+# Post-Script Module Creation Steps:
+# Rename Get-EnvInfo.ps1 Get-EnvInfo.psm1
+# New-Item -Path 'C:\Program Files\WindowsPowerShell\Modules\' -Type Directory -Name 'Get-EnvInfo'
+# Copy-Item .\Get-EnvInfo.psm1 'C:\Program Files\WindowsPowerShell\Modules\Get-EnvInfo\'
+# Set-Location 'C:\Program Files\WindowsPowerShell\Modules'
+# Gpedit.msc -> Computer Configuration > Administrative Templates > Windows Components > Windows PowerShell. Change the “Turn on Script Execution
+# Set-ItemProperty -Path HKLM:\Software\Policies\Microsoft\Windows\PowerShell -Name ExecutionPolicy -Value ByPass 
+# Import-Module Get-EnvInfo
+# Get-Module - verify the Module is loaded 

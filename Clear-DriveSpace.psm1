@@ -1,3 +1,5 @@
+function Clear-DriveSpace {
+
 <#
 .SYNOPSIS
 Clear-DriveSpace takes a computer name and runs through a set of processes that clears out unused drive space on a local computer.
@@ -110,8 +112,9 @@ if (Test-Connection $ComputerName -Quiet) {
     Set-Location "C:\Temp"
     .\treesize.exe 
        
-}
+} # If statement end
 else {
     Start-Sleep 3
     Write-Warning "Error: Cannot connect to $ComputerName. Please verify computer name and network connectivity."  -ForeGroundColor Yellow -BackGroundcolor Black
-}
+} 
+} # End function 
