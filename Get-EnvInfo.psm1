@@ -1,4 +1,4 @@
-function Get-EnvInfo {
+﻿function Get-EnvInfo {
 
     <#
     .SYNOPSIS
@@ -77,13 +77,3 @@ function Get-EnvInfo {
     } # End of process block
     END {}
 } # End of function
-
-# Post-Script Module Creation Steps:
-# Rename Get-EnvInfo.ps1 Get-EnvInfo.psm1
-# New-Item -Path 'C:\Program Files\WindowsPowerShell\Modules\' -Type Directory -Name 'Get-EnvInfo'
-# Copy-Item .\Get-EnvInfo.psm1 'C:\Program Files\WindowsPowerShell\Modules\Get-EnvInfo\'
-# Set-Location 'C:\Program Files\WindowsPowerShell\Modules'
-# Gpedit.msc -> Computer Configuration > Administrative Templates > Windows Components > Windows PowerShell. Change the “Turn on Script Execution
-# Set-ItemProperty -Path HKLM:\Software\Policies\Microsoft\Windows\PowerShell -Name ExecutionPolicy -Value ByPass 
-# Import-Module Get-EnvInfo
-# Get-Module - verify the Module is loaded 
