@@ -31,10 +31,6 @@ Accepted inputs: STS#3 (team site), STS#0 (team site classic), SITEPAGEPUBLISHIN
 Defaults to team site
 
 .EXAMPLE
-Make 3 examples of how to run - with mandatory or non mandatory arguments
-Don't need to manually pass in -credential you can leave it out and pscredential will prompt for credentials
-
-.EXAMPLE
 Run from the present working directory with all defaults
 Backup-ToSPSite -Domain "PizzaHut"
 
@@ -131,6 +127,6 @@ Account you use to authenticate has to have either the SharePoint administrator 
     Start-SPMTMigration
 
     Write-Host "SharePoint Site Created - Migration Complete" -ForeGroundColor Black -BackGroundcolor Yellow
-    Get-SPOSite | Where-Object { $_.Url -eq $SiteUrl } | Select-Object Status, Url, Title
+    Get-SPOSite | Where-Object { $_.Url -eq $SiteUrl } | Select-Object Title, Status, Url
 
 } # End of function
