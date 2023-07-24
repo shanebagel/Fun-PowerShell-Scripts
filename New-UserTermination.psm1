@@ -1,5 +1,10 @@
 function New-UserTermination {
 
+
+# In-progress
+
+
+
     <#
 .SYNOPSIS
 Fully disables a terminated user

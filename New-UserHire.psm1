@@ -1,5 +1,9 @@
 function New-UserHire {
 
+
+# In-progress
+
+
     <#
     .SYNOPSIS
     Fully creates a new user account
