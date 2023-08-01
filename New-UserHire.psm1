@@ -1,17 +1,12 @@
 function New-UserHire {
 
-
-    # In-progress
-
-
     <#
     .SYNOPSIS
     Fully creates a new user account
 
     .DESCRIPTION
     Creates a new user account, sets a secure password for the account, adds proxy addresses to on-premise account,
-    add user to relevant groups, runs a delta sync, licenses out office 365 mailbox, 
-    sends an encrypted email with all relevant information to a defined email
+    add user to relevant groups, runs a delta sync, licenses out office 365 mailbox
 
     .PARAMETER Credential
     Credential for new user. Set a password as a secure string. You can either set a password automatically without running the function with -Credential - it will automatically prompt you, or you can create a secure string object first and pass it in
@@ -157,9 +152,6 @@ function New-UserHire {
         [Parameter(Mandatory = $False)]
         [String[]]$Groups = $Null,
 
-        [Parameter(Mandatory = $False)]
-        [String]$SmtpServer = $Null,
-
         [Parameter(Mandatory = $False)] # Boolean - takes $true or $false
         [boolean]$CannotChangePassword = $False,
 
@@ -262,17 +254,7 @@ function New-UserHire {
     Update-MgUser -UserId $Id -UsageLocation "US" # Set Usage Location for account
     Set-MgUserLicense -UserId $Id -AddLicenses @{SkuId = $SkuId } -RemoveLicenses @() # License account
     Get-MgUserLicenseDetail -UserId $Id | Select-Object SkuPartNumber # Confirm license
-        
-} # End function
 
-# Steps
-# Check if the user account already exists in AD - Done - New-ADUser does this
-# Create a user account - Done
-# set a secure password - Done
-# store password securely - Done
-# add proxy addresses to on-premise account - Done
-# add user to relevant groups - Done
-# runs a delta sync - Done
-# licenses out office 365 mailbox - Done
-# sends an encrypted email with all relevant information to a defined email
-# Creates a log file with relevant information regarding new hire
+    Write-Host "Created User: $UserPrincipalName, synced to Office 365 at $CurrentSync"
+    
+} # End function
