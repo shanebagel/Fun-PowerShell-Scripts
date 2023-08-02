@@ -19,6 +19,6 @@ Help files are included for each, each file gets imported as a module for conven
 
 >6. Set-ItemProperty -Path HKLM:\Software\Policies\Microsoft\Windows\PowerShell -Name ExecutionPolicy -Value ByPass <br>
 
->7. Import-Module "Module Name" <br>
+>7. Import-Module "Module Name" - Import the Module to session <br>
 
->8. Get-Module - verify the Module is loaded <br>
+>8. Get-Module - Verify the Module is loaded <br>
