@@ -217,19 +217,18 @@ function New-UserHire {
         }
     }
 
-    Connect-MgGraph -Scopes "User.ReadWrite.All", "Organization.ReadWrite.All" | Out-Null # Connect to Microsoft Graph API
+    Connect-MgGraph -Scopes "User.ReadWrite.All", "Organization.ReadWrite.All" # Connect to Microsoft Graph API
     
     # Start-Sleep functionality waits until the user account has had time to sync to Azure AD
     $LastSync = Get-MgOrganization | Select-Object -ExpandProperty OnPremisesLastSyncDateTime # Get Last sync time
-    $WaitTime = 0
+    $WaitTime = 10
 
     Import-Module ADSync 
     Start-ADSyncSyncCycle -PolicyType 'Delta' # Run Sync to Office 365
 
     do { 
         Write-Warning "Syncing user account to Office 365 - Waiting until sync completes"
-        $WaitTime += 5
-        Start-Sleep $WaitTime # Sleep incrementing each loop by 5 seconds until user account syncs
+        Start-Sleep $WaitTime # Sleep incrementing each loop by 10 seconds until user account syncs
         $CurrentSync = Get-MgOrganization | Select-Object -ExpandProperty OnPremisesLastSyncDateTime
     } until ($CurrentSync -ne $LastSync) # While Current and Last sync variable are equal, sync has yet to take place to Office 365 / Azure AD
 
@@ -255,6 +254,6 @@ function New-UserHire {
     Set-MgUserLicense -UserId $Id -AddLicenses @{SkuId = $SkuId } -RemoveLicenses @() # License account
     Get-MgUserLicenseDetail -UserId $Id | Select-Object SkuPartNumber # Confirm license
 
-    Write-Host "Created User: $UserPrincipalName, synced to Office 365 at $CurrentSync"
+    Write-Host "Created User: $UPN - Synced to Office 365 at $CurrentSync"
     
 } # End function
