@@ -11,7 +11,7 @@ Help files are included for each, each file gets imported as a module for conven
 
 >2. New-Item -Path 'C:\Program Files\WindowsPowerShell\Modules\' -Type Directory -Name "Module-Directory" - Directory for module MUST match script name <br>
 
->3. Set-Location 'C:\Program Files\WindowsPowerShell\Modules\"Module-Directory"'
+>3. Set-Location 'C:\Program Files\WindowsPowerShell\Modules\ "Module-Directory"'
 
 >4. New-Item -ItemType SymbolicLink -Path .\Verb-Noun.psm1 -Target 'C:\Users\admin\Scripts\Fun-PowerShell-Scripts\Verb-Noun.psm1' - Create a symbolic link from 'Scripts' directory to Module directory  
 

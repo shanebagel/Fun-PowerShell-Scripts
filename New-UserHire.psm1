@@ -230,7 +230,7 @@ function New-UserHire {
         Write-Warning "Syncing user account to Office 365 - Waiting until sync completes"
         Start-Sleep $WaitTime # Sleep incrementing each loop by 10 seconds until user account syncs
         $CurrentSync = Get-MgOrganization | Select-Object -ExpandProperty OnPremisesLastSyncDateTime
-    } until ($CurrentSync -ne $LastSync) # While Current and Last sync variable are equal, sync has yet to take place to Office 365 / Azure AD
+    } until ($CurrentSync -gt $LastSync) # While Current and Last sync variable are equal, sync has yet to take place to Office 365 / Azure AD
 
     If ($License) {
         # If license key passed in equals a certain value, set the Sku ID
