@@ -1,5 +1,7 @@
 # Module Creation Process
 
+![image](https://github.com/shanebagel/Fun-PowerShell-Scripts/assets/99091402/9a521fdf-9cf7-4c1f-8a75-9725d743673e)
+
 1. Name script file containing functions to My-ModuleName.psm1 <br>
 ```Rename My-Script.ps1 My-ModuleName.psm1```<br>
 
