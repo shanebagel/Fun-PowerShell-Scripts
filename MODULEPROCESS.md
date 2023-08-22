@@ -2,20 +2,20 @@
 
 ![image](https://github.com/shanebagel/Fun-PowerShell-Scripts/assets/99091402/9a521fdf-9cf7-4c1f-8a75-9725d743673e)
 
-1. Name script file containing functions to My-ModuleName.psm1 <br>
-```Rename My-Script.ps1 My-ModuleName.psm1```<br>
+1. Name script file containing functions to ModuleName.psm1 <br>
+```Rename My-Script.ps1 ModuleName.psm1```<br>
 
 2. Run $env:PSModulePath for Module file locations <br>
 ```$env:psmodulepath```<br>
 
 3. Change directory to one of the PSModulePath directories and create a Module directory <br>
-```New-Item -Path .\My-ModuleName -ItemType Directory``` <br>
+```New-Item -Path .\ModuleName -ItemType Directory``` <br>
 
 4. This folder must have the same name as the Module file <br>	
-```My-ModuleName\My-ModuleName.psm1``` <br>
+```ModuleName\ModuleName.psm1``` <br>
 
 5. Create a symbolic link for your .psm1 file in the new Module directory <br>
-```New-Item -ItemType SymbolicLink -Path .\My-ModuleName.psm1 -Target 'LocationOfModuleFile'``` <br>
+```New-Item -ItemType SymbolicLink -Path .\ModuleName.psm1 -Target 'LocationOfModuleFile'``` <br>
 
 6. Create a .psd1 Manifest file to add metadata to Module <br>
 ```New-ModuleManifest``` <br>
