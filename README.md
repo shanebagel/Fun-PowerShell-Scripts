@@ -6,7 +6,7 @@ I try to keep scripts & functions looking as native to real PowerShell commands 
 
 Help files are included for each, each file gets imported as a module for convenience, and a symbolic link gets pointed to a module directory. <br>
 
-# Process for importing scripts as modules:
+# Process for importing modules:
 >1. Run $env:PSModulePath <br>
 
 >2. Put module file & manifest file in a directory contained in the PSModulePath variable' <br>
