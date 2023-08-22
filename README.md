@@ -13,4 +13,4 @@ Help files are included for each, each file gets imported as a module for conven
 
 >3. Import-Module "ModuleName" - Imports Module into session <br>
 
->8. Get-Module - Verify the Module is loaded <br>
+>4. Get-Module - Verify the Module is loaded <br>
