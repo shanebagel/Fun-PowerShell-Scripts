@@ -2,11 +2,13 @@
 
 I've written everything from scratch. <br>
 
-I try to keep scripts & functions looking as native to real PowerShell commands as possible. <br>
+I try to keep script files & functions looking as native to real PowerShell commands as possible. <br>
 
-Help files are included in each script, and each script can be ran as a stand-alone .ps1 file. <br>
+Help files are included in each script and can be accessed by running Get-Help. <br> 
 
 Scripts can also be imported as modules by including their respective .psm1 and .psd1 files. <br>
+
+All scripts contain functions, you can run them by typing . .\ScriptName.ps1 for .ps1 files or Import-Module if including module & manifest files. <br>
 
 # Process for importing scripts as modules:
 1. Run $env:PSModulePath <br>
