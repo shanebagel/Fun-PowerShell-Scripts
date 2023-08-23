@@ -8,7 +8,8 @@ Help files are included in each script and can be accessed by running Get-Help. 
 
 Scripts can also be imported as modules by including their respective .psm1 and .psd1 files. <br>
 
-All scripts contain functions, you can run them by typing . .\ScriptName.ps1 for .ps1 files or Import-Module if including module & manifest files. <br>
+All scripts contain functions
+You can run them by typing . .\ScriptName.ps1 for .ps1 files or Import-Module if including module & manifest files. <br>
 
 # Process for importing scripts as modules:
 1. Run $env:PSModulePath <br>
