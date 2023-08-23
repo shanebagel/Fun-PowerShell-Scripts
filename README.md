@@ -18,3 +18,5 @@ Scripts can also be imported as modules by including their respective .psm1 and 
 5. Import-Module "ModuleName" - Imports Module into session <br>
 
 5. Get-Module; Get-Command -Module "ModuleName" - Verify the Module and functions are loaded <br>
+
+![Alt text](image.png)
