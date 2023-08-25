@@ -1,45 +1,128 @@
 function Move-ProfileData {
 
-
-
-
-
-Write-Output "7. Login with the users credentials and windows will create a new user profile."
 <#
+.SYNOPSIS 
+Migrates data stored in an old windows user profile to a new profile
 
+.DESCRIPTION
+Copies data in the following directories to the new profile:
+File explorer quick access items
+Google Chrome data 
+MS Edge data 
+Mozilla Firefox data
+OneNote Files (Everything)
+OneNote "Backup" Files
+Windows Credential Manager Objects
+Outlook Signature content
+Taskbar File location 
 
-8. Transfer data from the user’s old profile (OLD-username) into the users new profile (username) one folder at a time. 
-	• Do not transfer the “AppData” contents unless you specifically know what you are looking for. This folder is most likely housing the garbage that jacked-up the user profile in the first place. 
-	• Don't delete the old profile folder. Just in case.
-9. Reboot once more.
-10. Have user login again.
-11. Sign into all office apps (OneDrive/Teams/Microsoft Office Suite)
-12. Remap task bar items and any other cosmetics that aren't pushed by GPO
-13. Remap quick access folders (copy files over from old profile) %appdata%\roaming\microsoft\windows\recent\automaticdestinations
-14. Make sure user can access SharePoint sites online
-15. Remap SharePoint sites to File Explorer
-16. Setup OneDrive to backup Desktop/Documents/Pictures directories
-17. Set default apps
-18. Copy bookmarks/browser data for web browser from old profile 
-19. Sign into Gmail account for Google Chrome
-20. Recreate outlook signatures
-21. Re-add network drives (if not pushed by GPO)
-22. Re-add printers (if not pushed by GPO)
+Optionally: Outlook Data Files - use the IncludeOutlookData paramater 
 
-Useful Locations to copy over when rebuilding Profile:
+.PARAMETER UserName
+Username of the account you're running script against
 
-User Profile Registry Key Location	HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\ProfileList
-File explorer Quick Access locations	C:\Users\%username%\%Appdata%\microsoft\windows\recent\automaticdestinations
-Google Chrome Data File Location	C:\Users\%username%\AppData\Local\Google\Chrome\User Data\Default 
-MS Edge Data File Location	C:\Users\%username%\AppData\Local\Microsoft\Edge\User Data\Default
-Mozilla Firefox Data File Location	C:\Users\%username%\%AppData%\Mozilla\Firefox\Profiles\
-Outlook Signature File Location	C:\Users\%username%\AppData\Roaming\Microsoft\Signatures
-OneNote File Location (Everything)	C:\Users\%username%\AppData\Local\Packages\Microsoft.Office.OneNote_8wekyb3d8bbwe
-OneNote "Backup" File Location	C:\Users\%username%\AppData\Local\Microsoft\OneNote\16.0\Backup
-Windows Credential Manager File Location 	C:\Users\%username%\AppData\Local\Microsoft\Vault
-Outlook Data File Location	C:\Users\%username%\AppData\Local\Microsoft\Outlook
-Taskbar File Location	C:\Users\%username%\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar
+.PARAMETER NewProfileName
+New profile you're migrating data into
+
+.PARAMETER ComputerName
+Computer name of the machine that houses the profiles
+
+.PARAMETER ProfileName
+Old profile you're migrating data out of 
+
+.PARAMETER IncludeOutlookData
+If $true is passed in outlook data files will be copied over to new profile. By default outlook data files will not be included in move
+
+.EXAMPLE
+Move-ProfileData -ComputerName "Shaneserver" -ProfileName "OLD-bob" -NewProfileName "bob" -Username "bob"
+
+.NOTES
+Can be ran after Start-ProfileRebuild.ps1
 
 #>
 
-}
+	[CmdletBinding()]
+	Param (
+		[Parameter(ValueFromPipeline = $True, Mandatory = $True)]
+		[String]$ComputerName,
+
+		[Parameter(Mandatory = $True)]
+		[String]$NewProfileName,
+
+		[Parameter(Mandatory = $True)]
+		[String]$ProfileName,
+
+		[Parameter(Mandatory = $True)]
+		[String]$UserName,
+
+		[Parameter(Mandatory = $False, ValidateNotNull)]
+		[Boolean]$IncludeOutlookData
+
+	) 
+
+	begin {
+		$TestCondition = (Test-Path "C:\Users\$ProfileName") -and (Test-Path "C:\Users\$NewProfileName")	
+	}
+
+	process {
+
+		if ( $TestCondition ) {
+
+			$SourcePaths = @( # Source file locations
+				"C:\Users\$ProfileName\Desktop\*"
+				"C:\Users\$ProfileName\Downloads\*"
+				"C:\Users\$ProfileName\Documents\*"
+				"C:\Users\$ProfileName\Pictures\*"
+				"C:\Users\$ProfileName\Videos\*"
+				"C:\Users\$ProfileName\Appdata\Roaming\microsoft\windows\recent\automaticdestinations\*"
+				"C:\Users\$ProfileName\AppData\Local\Google\Chrome\User Data\Default\*"
+				"C:\Users\$ProfileName\AppData\Local\Microsoft\Edge\User Data\Default\*"
+				"C:\Users\$ProfileName\AppData\Roaming\Mozilla\Firefox\Profiles\*"
+				"C:\Users\$ProfileName\AppData\local\Mozilla\Firefox\Profiles\*"
+				"C:\Users\$ProfileName\AppData\Roaming\Microsoft\Signatures\*"
+				"C:\Users\$ProfileName\AppData\Local\Packages\Microsoft.Office.OneNote_8wekyb3d8bbwe\*"
+				"C:\Users\$ProfileName\AppData\Local\Microsoft\OneNote\16.0\Backup\*"
+				"C:\Users\$ProfileName\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar\*"
+				"C:\Users\$ProfileName\AppData\Local\Microsoft\Vault\*"
+			)
+
+			$DestinationPaths = @(
+				"C:\Users\$NewProfileName\Desktop"
+				"C:\Users\$NewProfileName\Downloads"
+				"C:\Users\$NewProfileName\Documents"
+				"C:\Users\$NewProfileName\Pictures"
+				"C:\Users\$NewProfileName\Videos"
+				"C:\Users\$NewProfileName\Appdata\Roaming\microsoft\windows\recent\automaticdestinations"
+				"C:\Users\$NewProfileName\AppData\Local\Google\Chrome\User Data\Default"
+				"C:\Users\$NewProfileName\AppData\Local\Microsoft\Edge\User Data\Default"
+				"C:\Users\$NewProfileName\AppData\Roaming\Mozilla\Firefox\Profiles"
+				"C:\Users\$NewProfileName\AppData\local\Mozilla\Firefox\Profiles"
+				"C:\Users\$NewProfileName\AppData\Roaming\Microsoft\Signatures"
+				"C:\Users\$NewProfileName\AppData\Local\Packages\Microsoft.Office.OneNote_8wekyb3d8bbwe"
+				"C:\Users\$NewProfileName\AppData\Local\Microsoft\OneNote\16.0\Backup"
+				"C:\Users\$NewProfileName\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar"
+				"C:\Users\$NewProfileName\AppData\Local\Microsoft\Vault"
+			)
+
+			# Move-Item moves data into new profile programmatically 
+			foreach ( $SourcePath in $SourcePaths ) {
+				foreach ( $DestinationPath in $DestinationPaths ) {
+					Move-Item -Path $SourcePath -Destination $DestinationPath
+				}
+			}
+
+			# Move-Item moves data for outlook data files if the $True boolean value is passed in via the IncludeOutlookData parameter
+			if ( $IncludeOutlookData -eq $True ) {
+				Move-Item -Path "C:\Users\$ProfileName\AppData\Local\Microsoft\Outlook\*" -Destination "C:\Users\$NewProfileName\AppData\Local\Microsoft\Outlook"
+			}
+
+		} # End if statement
+
+		else {
+			Write-Warning "Error - File path C:\Users\$ProfileName or C:\Users\$NewProfileName doesn't exist!"
+			Write-Warning "Re-run script after logging in with user credentials to create the new profile if it doesn't exist"
+		}
+
+	} # End process block
+
+} # End function

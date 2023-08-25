@@ -1,89 +1,66 @@
+function Start-ProfileRebuild { # Start function
+
 <#
 .SYNOPSIS 
-Rebuilds windows profile, copies all files from users old profile
+Starts rebuilding windows profile by removing registry keys associated with user account, renaming windows profile, and rebooting to release any locks on profile
 
 .DESCRIPTION
-Rebuilds windows profile by removing registry keys: HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\ProfileList
-Reboots the computer, logs in with user credentials to create new profile, transfers data from old profile into new profile 
+Updates C:\Users\<Profile> folder in Users directory to OLD-ProfileName
+Removes registry keys associated with SID: HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\ProfileList\<UserSID>
+Checks if machine has been online for more than an hour 
+Reboots to release locks on profile
 
-.PARAMETER Identity
-Username of the profile being rebuilt
+.PARAMETER UserName
+Username of the user account being rebuilt
+
+.PARAMETER ProfileName
+Profile folder name of the profile being rebuilt
 
 .PARAMETER ComputerName
 Hostname of the machine you're running the script against
 
-.PARAMETER Credential
-Credential of the user that script will use to sign back into the workstation with
-
 .EXAMPLE
-Start-ProfileRebuild -ComputerName "ShaneClient" -Identity "Shane" 
+Start-ProfileRebuild -ComputerName "Shaneserver" -ProfileName "bob" -UserName "bob"
 
 .NOTES
-Must be ran before Move-ProfileData.psm1
-
-#>
-[CmdletBinding()]
-Param (
-    [Parameter(ValueFromPipeline=$True)]
-    [PSCredential]$Credential,
-
-    [Parameter(ValueFromPipelineByPropertyName=$True)]
-    [String]$ComputerName,
-
-    [Parameter(ValueFromPipeline=$True)]
-    [String]$Identity
-)
-
-function Start-ProfileRebuild {
-
-Invoke-Command -ComputerName $ComputerName -ScriptBlock {Restart-Computer}
-
-while ($Online -ne $null){
-
-Write-Output "oops"
-}
-
-<#
-
-1. Reboot the computer to release any locks on the profile. - add a check to see if machine was rebooted
-3. Navigate to the users profile C:\Users\<UserProfile>
-4. Rename the user profile with the word “old”. Example: “username” becomes “OLD-username”
-5. Delete registry key for that user: Open regedit.exe and navigate to: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\WindowsNT\CurrentVersion\ProfileList
-Find the key that lists the user name. Then delete it. You need to delete the entire folder. 
-
-HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\ProfileList
-
-The entire SID folder must be deleted for the user
-
-6. Reboot the computer again.
-
-#>
-}
-
-
-
-<#
-.SYNOPSIS 
-
-.DESCRIPTION
-
-.PARAMETER Identity
-
-.PARAMETER ComputerName
-
-.PARAMETER Credential
-
-.EXAMPLE
-
-.NOTES
-Must be ran after Initialize-ProfileRebuild.psm1
+Must be ran before Move-ProfileData.ps1
 
 #>
 
+    [CmdletBinding()]
+    Param ( 
+        [Parameter(ValueFromPipelineByPropertyName = $True, Mandatory = $True)]
+        [String]$ComputerName,
 
+        [Parameter(Mandatory = $True)]
+        [String]$ProfileName,
 
+        [Parameter(Mandatory = $True)]
+        [String]$UserName
+    )
 
+    begin { # Begin block
+        $LastBootUpTime = Invoke-Command -ComputerName $ComputerName -ScriptBlock { Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object -ExpandProperty LastBootUpTime }
+        $LocalDateTime = Invoke-Command -ComputerName $ComputerName -ScriptBlock { Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object -ExpandProperty LocalDateTime }
+        $TimeDifference = New-TimeSpan -Start $LocalDateTime -End $LastBootUpTime
+  
+        if ($TimeDifference.Hours -ne 0) { # Checks if machine has been online for more than an hour
+            Write-Warning "Power cycling machine to release any profile locks as it's been online for more than one hour"
+            Write-Warning "Re-run script after reboot completes"
+            Start-Sleep -Seconds 10
+            Invoke-Command -ComputerName $ComputerName -ScriptBlock { Restart-Computer -Force } # Reboot workstation to release locks on profile
+            exit # Terminate script and must be reran
+        } 
+    }
 
+    process { # Process block
+        Set-Location "C:\Users"; Rename-Item $ProfileName "OLD-$ProfileName" # Renames user profile by appending the word "OLD"
+        $SID = Get-CimInstance -ComputerName $ComputerName -ClassName Win32_UserAccount | Where-Object { $_.Name -eq $UserName } | Select-Object -ExpandProperty SID # Extract SID from the user account
+        Remove-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\$SID" -recurse # Remove the registry keys associated with user profile
+        Write-Warning "Profile renamed, registry keys cleared, rebooting machine to finalize changes"
+        Write-Warning "Please sign back into windows with user credentials after reboot"
+        Start-Sleep -Seconds 10
+        Invoke-Command -ComputerName $ComputerName -ScriptBlock { Restart-Computer -Force } # Reboot workstation to release locks on profile    
+    }
 
-
-
+} # End function
