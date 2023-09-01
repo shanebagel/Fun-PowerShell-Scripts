@@ -1,7 +1,6 @@
-function Set-AutomaticLogin {
-    # Start function
+function Set-AutomaticLogin { # Start function
 
-    <#
+<#
 .SYNOPSIS
 Sets credentials to automatically login to a windows local or domain account
 
