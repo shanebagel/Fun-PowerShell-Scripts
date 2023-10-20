@@ -13,8 +13,8 @@ UPN of the Azure account you're setting the clearance attribute value on
 .PARAMETER ClearedStatus
 Clearance status
 
-$True = Employee is CLEARED
-$False = Employee is UNCLEARED 
+CLEARED = Employee has been cleared
+UNCLEARED = Employee does not have a clearance 
 
 .EXAMPLE
 Set cleared attribute to true on account
@@ -27,7 +27,8 @@ Set-ClearedAttribute -UserPrincipalName "Bob@Builders.com" -ClearedStatus $True
         [String]$UserPrincipalName,
 
         [Parameter(Mandatory = $True)]
-        [Boolean]$ClearedStatus
+        [ValidateSet("CLEARED", "UNCLEARED")]
+        [String]$ClearedStatus
     ) 
 
     begin {
